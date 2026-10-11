@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protection Fields</title>
+<meta name="description" content="A sequence of protection field activations to listen to in order.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0d16;
+    --bg-2: #121527;
+    --card: rgba(255,255,255,0.035);
+    --card-active: rgba(212,175,95,0.08);
+    --line: rgba(255,255,255,0.09);
+    --text: #ece8dc;
+    --muted: #9a97a8;
+    --gold: #d4af5f;
+    --gold-soft: rgba(212,175,95,0.35);
+    --serif: "Cormorant Garamond", Georgia, serif;
+    --sans: "Jost", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(120,90,200,0.18), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, rgba(212,175,95,0.08), transparent 70%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px 120px; }
+
+  header { text-align: center; padding: 72px 0 40px; }
+  .sigil {
+    width: 72px; height: 72px; margin: 0 auto 24px;
+    border: 1px solid var(--gold-soft); border-radius: 50%;
+    display: grid; place-items: center; position: relative;
+  }
+  .sigil::before, .sigil::after {
+    content: ""; position: absolute; border: 1px solid var(--gold-soft); border-radius: 50%;
+  }
+  .sigil::before { inset: 10px; }
+  .sigil::after { inset: 22px; background: radial-gradient(circle, var(--gold) 0 3px, transparent 4px); border-color: var(--gold); }
+  h1 {
+    font-family: var(--serif); font-weight: 400; font-size: clamp(2.4rem, 7vw, 3.6rem);
+    letter-spacing: 0.02em; margin: 0 0 12px; line-height: 1.1;
+  }
+  .lede { color: var(--muted); max-width: 520px; margin: 0 auto 32px; font-size: 1.02rem; }
+
+  .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    font: 400 0.92rem var(--sans); letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--bg); background: var(--gold); border: 0; border-radius: 999px;
+    padding: 12px 24px; cursor: pointer; transition: transform .15s, opacity .15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+
+  ol.fields { list-style: none; padding: 0; margin: 48px 0 0; display: grid; gap: 16px; }
+  .field {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 24px; transition: background .3s, border-color .3s;
+  }
+  .field.active { background: var(--card-active); border-color: var(--gold-soft); }
+  .field.missing { opacity: 0.6; }
+  .top { display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: start; }
+  .play {
+    width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--gold-soft);
+    background: transparent; color: var(--gold); cursor: pointer; display: grid; place-items: center;
+    transition: background .2s;
+  }
+  .play:hover:not(:disabled) { background: rgba(212,175,95,0.12); }
+  .play:disabled { cursor: not-allowed; border-color: var(--line); color: var(--muted); }
+  .play svg { width: 20px; height: 20px; }
+  .num { font-family: var(--serif); font-style: italic; color: var(--gold); font-size: 1rem; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 1.6rem; margin: 0; line-height: 1.2; }
+  .meta { color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+  .desc { margin: 16px 0 0; color: #d6d2c6; }
+  .desc p { margin: 0 0 10px; }
+  .pending { font-size: 0.85rem; color: var(--muted); font-style: italic; margin-top: 8px; }
+
+  .bar { margin-top: 18px; display: none; align-items: center; gap: 12px; font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .field.active .bar { display: flex; }
+  input[type=range] { flex: 1; accent-color: var(--gold); min-width: 0; }
+
+  footer { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 64px; }
+
+  @media (max-width: 480px) {
+    header { padding-top: 48px; }
+    .field { padding: 18px; }
+    .top { grid-template-columns: 48px 1fr; gap: 14px; }
+    .play { width: 48px; height: 48px; }
+    h2 { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="sigil" aria-hidden="true"></div>
+    <h1>Protection Fields</h1>
+    <p class="lede">A sequence of protection field activations. Listen to them one at a time, or play the full sequence in order.</p>
+    <div class="controls">
+      <button class="btn" id="playAll">Play full sequence</button>
+      <button class="btn ghost" id="stop">Stop</button>
+    </div>
+  </header>
+
+  <ol class="fields" id="fields"></ol>
+
+  <footer>Use headphones in a quiet space where you can stay undisturbed.</footer>
+</div>
+
+<audio id="player" preload="none"></audio>
+
+<script>
+/*
+  ── EDIT THE FIELDS HERE ──
+  To add an audio file: drop it into the /audio folder and set `file` to "audio/your-file.mp3".
+  Leave `file: null` and the field shows as "audio to be added".
+  `desc` is plain text; separate paragraphs with a blank line.
+*/
+const FIELDS = [
+  {
+    title: "Rose Gold Protection",
+    source: "Magenta Pixie",
+    file: "audio/rose-gold-protection.mp3",
+    desc: "Rose Gold flame protection from Magenta Pixie's teachings, given by the White Winged Collective Consciousness of Nine. It is used as the antidote to the \"Black Box\"."
+  },
+  {
+    title: "27 Esoteric Fields",
+    source: "144K",
+    file: "audio/27-esoteric-fields.mp3",
+    desc: "A guided activation of the 27 esoteric protection fields, called in one after another to form a layered shield around the body and energy field."
+  },
+  {
+    title: "Archangel Michael Protection Field",
+    source: "AA Michael",
+    file: "audio/aa-michael-protection.m4a",
+    desc: "Calls on Archangel Michael, guardian and protector, to surround you in his deep blue light, cut away any cords or attachments, and seal your field."
+  },
+  {
+    title: "Gamalghoom Protection Field",
+    source: "144K · Mass Meditation Protection Protocol",
+    file: "audio/144k-mass-meditation-protection.mp3",
+    desc: "The 144K Gamalghoom protection protocol (7-minute version), used to shield yourself before mass meditations and energy work."
+  },
+  {
+    title: "Maharic Seal",
+    source: "Ashayana Deane · Voyagers / Kathara Bio-Spiritual Healing System",
+    file: "audio/maharic-seal.mp3",
+    desc: "A bio-clearing, alignment and protection technique. Working with the breath, the Hierophant symbol is carried from the pineal gland down the central vertical body current to a spinning disc of pale silver light at the Earth's core: the Earth's Maharic Shield.\n\nPale silver light is then drawn up into your personal Maharic Shield, 12 inches below the body, and expanded into a pillar of pale silver light that encases and runs through the body and fills every cell.\n\nFinally the Hierophant rises through the crown to the 14th chakra, 36 inches above the head, and expands outward. The pillar now extends from the Earth's core to a single star of pale blue light in deep space, and the Maharic Seal is active in your bio-energetic field."
+  },
+  {
+    title: "Diamond Light Protection",
+    source: "Group of Forty · Hannah",
+    file: "audio/gof-diamond-light-protection.mp3",
+    desc: "Builds a cosmic egg of light around you, held by bands of gold."
+  },
+  {
+    title: "Personal Crystal Grid Activation",
+    source: "Children of the Sun · Oneness Transmissions",
+    file: "audio/cos-personal-crystal-grid.mp3",
+    desc: "An invocation that calls on the Spirit of the Earth, the powers of nature and the planetary Crystalline Grid. Through prismatic streams of many-coloured light, your personal crystal grid is activated and linked to the grids of lightworkers around the world.\n\nA permeable sphere of universal energy is placed around your home grid, grounded into the core of the Earth and the sun, and blessed with the trinity flame of Divine Love, Wisdom and Willpower. Your home and land are then sealed within a protective forcefield: an invincible bubble of peace and love."
+  },
+  {
+    title: "Shield of Invincibility",
+    source: "Children of the Sun · Bali Water Blessings",
+    file: "audio/cos-shield-of-invincibility.mp3",
+    desc: "A guided session from the Bali Water Blessings series that builds a shield of invincibility around you."
+  }
+];
+
+const list = document.getElementById("fields");
+const player = document.getElementById("player");
+const icons = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>'
+};
+let current = -1;
+let sequence = false;
+
+const fmt = s => isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "0:00";
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+FIELDS.forEach((f, i) => {
+  const li = document.createElement("li");
+  li.className = "field" + (f.file ? "" : " missing");
+  li.id = "field-" + (i + 1);
+  const paras = f.desc.split(/\n\s*\n/).map(p => `<p>${esc(p)}</p>`).join("");
+  li.innerHTML = `
+    <div class="top">
+      <button class="play" ${f.file ? "" : "disabled"} aria-label="Play ${esc(f.title)}">${icons.play}</button>
+      <div>
+        <div class="num">${String(i + 1).padStart(2, "0")}</div>
+        <h2>${esc(f.title)}</h2>
+        <div class="meta">${esc(f.source)}</div>
+      </div>
+    </div>
+    <div class="desc">${paras}${f.file ? "" : '<div class="pending">Audio to be added</div>'}</div>
+    <div class="bar">
+      <span class="cur">0:00</span>
+      <input type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek">
+      <span class="dur">0:00</span>
+    </div>`;
+  li.querySelector(".play").addEventListener("click", () => toggle(i, false));
+  li.querySelector("input").addEventListener("input", e => {
+    if (current === i && player.duration) player.currentTime = e.target.value / 100 * player.duration;
+  });
+  list.appendChild(li);
+});
+
+const cards = [...list.children];
+
+function setIcons() {
+  cards.forEach((c, i) => {
+    const playing = i === current && !player.paused;
+    c.querySelector(".play").innerHTML = playing ? icons.pause : icons.play;
+    c.classList.toggle("active", i === current);
+  });
+}
+
+function load(i) {
+  current = i;
+  player.src = FIELDS[i].file;
+  player.play();
+  cards[i].scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function toggle(i, seq) {
+  sequence = seq;
+  if (i === current) { player.paused ? player.play() : player.pause(); return; }
+  load(i);
+}
+
+function nextPlayable(from) {
+  for (let j = from + 1; j < FIELDS.length; j++) if (FIELDS[j].file) return j;
+  return -1;
+}
+
+document.getElementById("playAll").addEventListener("click", () => {
+  const first = nextPlayable(-1);
+  if (first >= 0) { sequence = true; load(first); }
+});
+document.getElementById("stop").addEventListener("click", () => {
+  player.pause(); player.removeAttribute("src"); player.load();
+  sequence = false; current = -1; setIcons();
+});
+
+player.addEventListener("play", setIcons);
+player.addEventListener("pause", setIcons);
+player.addEventListener("timeupdate", () => {
+  if (current < 0) return;
+  const c = cards[current];
+  c.querySelector(".cur").textContent = fmt(player.currentTime);
+  c.querySelector(".dur").textContent = fmt(player.duration);
+  if (player.duration) c.querySelector("input").value = player.currentTime / player.duration * 100;
+});
+player.addEventListener("ended", () => {
+  const n = sequence ? nextPlayable(current) : -1;
+  if (n >= 0) load(n); else { sequence = false; setIcons(); }
+});
+</script>
+</body>
+</html>
