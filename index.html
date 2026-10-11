@@ -39,7 +39,7 @@
   }
   .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px 120px; }
 
-  header { text-align: center; padding: 72px 0 40px; }
+  header { text-align: center; padding: 32px 0 40px; }
   .sigil {
     width: 72px; height: 72px; margin: 0 auto 24px;
     border: 1px solid var(--gold-soft); border-radius: 50%;
@@ -50,6 +50,12 @@
   }
   .sigil::before { inset: 10px; }
   .sigil::after { inset: 22px; background: radial-gradient(circle, var(--gold) 0 3px, transparent 4px); border-color: var(--gold); }
+  .hero {
+    width: 100%; max-width: 760px; aspect-ratio: 16 / 9; object-fit: cover;
+    border-radius: 18px; margin: 0 auto 28px; display: block;
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+            mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  }
   h1 {
     font-family: var(--serif); font-weight: 400; font-size: clamp(2.4rem, 7vw, 3.6rem);
     letter-spacing: 0.02em; margin: 0 0 12px; line-height: 1.1;
@@ -96,7 +102,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 64px; }
 
   @media (max-width: 480px) {
-    header { padding-top: 48px; }
+    header { padding-top: 16px; }
     .field { padding: 18px; }
     .top { grid-template-columns: 48px 1fr; gap: 14px; }
     .play { width: 48px; height: 48px; }
@@ -107,7 +113,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="sigil" aria-hidden="true"></div>
+    <img class="hero" src="header.jpg" alt="" aria-hidden="true" onerror="this.remove()">
     <h1>Protection Fields</h1>
     <p class="lede">A sequence of protection field activations. Listen to them one at a time, or play the full sequence in order.</p>
     <div class="controls">
